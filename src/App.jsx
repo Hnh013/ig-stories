@@ -1,122 +1,88 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useState, useEffect } from 'react';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [stories, setStories] = useState([]);
+  const [isViewing, setIsViewing] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // NEW: Track which way the user is navigating
+  const [direction, setDirection] = useState('next'); 
+
+  useEffect(() => {
+    fetch('/stories.json')
+      .then(res => res.json())
+      .then(data => setStories(data))
+      .catch(err => console.error("Failed to load stories", err));
+  }, []);
+
+  useEffect(() => {
+    let timer;
+    if (isViewing && !isLoading) {
+      timer = setTimeout(() => {
+        handleNext();
+      }, 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [currentIndex, isViewing, isLoading]);
+
+  const handleNext = () => {
+    if (currentIndex < stories.length - 1) {
+      setDirection('next'); // Set direction to next
+      setIsLoading(true);
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      setIsViewing(false);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setDirection('prev'); // Set direction to prev
+      setIsLoading(true);
+      setCurrentIndex(prev => prev - 1);
+    }
+  };
+
+  const openStory = (index) => {
+    setDirection('none');
+    setCurrentIndex(index);
+    setIsLoading(true);
+    setIsViewing(true);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="mobile-container">
+      <div className="story-list">
+        {stories.map((story, index) => (
+          <div key={story.id} className="story-thumbnail" onClick={() => openStory(index)}>
+            <img src={story.avatar} alt={`${story.author}'s avatar`} />
+            <p>{story.author}</p>
+          </div>
+        ))}
+      </div>
 
-      <div className="ticks"></div>
+      {isViewing && stories.length > 0 && (
+        <div className="story-viewer">
+          {isLoading && <div className="loader">Loading...</div>}
+          
+          <img 
+            // THE MAGIC: Changing the key forces React to replay the animation
+            key={currentIndex} 
+            className={`story-image ${direction}`}
+            src={stories[currentIndex].imageUrl} 
+            alt="Story content"
+            style={{ display: isLoading ? 'none' : 'block' }}
+            onLoad={() => setIsLoading(false)} 
+          />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          <div className="tap-zone left" onClick={handlePrev} />
+          <div className="tap-zone right" onClick={handleNext} />
+          
+          <button className="close-btn" onClick={() => setIsViewing(false)}>✕</button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      )}
+    </div>
+  );
 }
-
-export default App

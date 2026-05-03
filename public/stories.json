@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "author": "Arun",
+    "avatar": "https://i.pravatar.cc/150?img=11",
+    "imageUrl": "https://picsum.photos/id/1018/400/800"
+  },
+  {
+    "id": "2",
+    "author": "Priya",
+    "avatar": "https://i.pravatar.cc/150?img=5",
+    "imageUrl": "https://picsum.photos/id/1015/400/800"
+  },
+  {
+    "id": "3",
+    "author": "Kabir",
+    "avatar": "https://i.pravatar.cc/150?img=8",
+    "imageUrl": "https://picsum.photos/id/1036/400/800"
+  }
+]
